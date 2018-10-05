@@ -75,8 +75,9 @@ class Input:
         """
 
         print("On me parle : ", data)
+        print("  last_command : ", self.last_command)
 
-        if data == '.':
+        if data == ".":
             data = self.last_command
 
         # Séparation de la commande et des paramètres, qui sont optionnels
@@ -93,6 +94,8 @@ class Input:
         else:
             print("Commande : " + command + " paramètres : " + params)
             manager = self.COMMAND_LIST[command]
+            self.last_command = data
+
             return manager.get_response(command, params)
 
     def define_alert_handler(self, handler):
