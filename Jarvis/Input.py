@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import re
-from threading import Thread, Lock
+from threading import Thread
 from time import sleep
+
 from Jarvis.Crypto import Crypto
 
 

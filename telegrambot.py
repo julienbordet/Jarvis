@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import logging
 import configparser
+import logging
 from time import sleep
+
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-import telegram
+
 from Jarvis.Input import Input
+
 
 def error(bot, update, error):
     logging.warning('Update "%s" caused error "%s"', update, error)
+
 
 def save_chat_id(update):
     global chat_id
@@ -17,6 +20,7 @@ def save_chat_id(update):
     # On sauvegarde chat_id si cela n'avait pas été fait auparavant
     if chat_id == None:
         chat_id = update.message.chat_id
+
 
 def start(bot, update):
     """
@@ -31,6 +35,7 @@ def start(bot, update):
     save_chat_id(update)
     update.message.reply_text("Hi all")
 
+
 def manage_dialog(bot, update):
     """
     Handler des messages envoyés par l'utilisateur sur Telegram
@@ -43,6 +48,7 @@ def manage_dialog(bot, update):
 
     save_chat_id(update)
     update.message.reply_text(j.send_command(update.message.text))
+
 
 def handle_new_alert(msg):
     """
@@ -66,6 +72,7 @@ def handle_new_alert(msg):
     bot = updater.bot
     bot.sendMessage(chat_id=chat_id, text=msg)
 
+
 def main():
     global j
     global chat_id
@@ -87,18 +94,18 @@ def main():
     j = Input()
 
     j.register_crypto(cb_api_key, cb_api_secret)
-    #j.define_alert_handler(handle_new_alert)
-    #j.start_polling()
+    # j.define_alert_handler(handle_new_alert)
+    # j.start_polling()
 
     #
     # Démarrage du bot
     #
 
     updater = Updater(telegram_token)
-                   
+
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(Filters.text,manage_dialog))
+    dp.add_handler(MessageHandler(Filters.text, manage_dialog))
     dp.add_error_handler(error)
     updater.start_polling()
 
@@ -108,8 +115,9 @@ def main():
     #   2/ alertes gérées par l'objet input d'autre part.
     #
 
-    while(1):
+    while (1):
         sleep(1)
+
 
 if __name__ == '__main__':
     main()
