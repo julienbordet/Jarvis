@@ -2,7 +2,7 @@
 
 ## Configuration
 
-Create a .ini file with the following data
+Create a config.ini file with the following data
 
 ```
 [COINBASE]
