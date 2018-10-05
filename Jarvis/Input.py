@@ -39,6 +39,8 @@ class Input:
 
         self.thread = Thread(target=self.manage_checks)
 
+        self.last_command = ''
+
     def register_crypto(self, api, key):
         """
         Enregistrement du type d'objet Crypto
@@ -73,6 +75,9 @@ class Input:
         """
 
         print("On me parle : ", data)
+
+        if data == '.':
+            data = self.last_command
 
         # Séparation de la commande et des paramètres, qui sont optionnels
         words = re.search(r"(\w+)\s*(.*)", data)
