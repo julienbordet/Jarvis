@@ -65,6 +65,7 @@ def handle_new_alert(msg):
     global chat_id
 
     if chat_id == None:
+        logging.warning("Tentative d'appel de handle_new_alert sans chat id")
         return
 
     logging.warning("In 'handle_new_alert : " + msg)
