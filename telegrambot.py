@@ -11,7 +11,9 @@ from Jarvis.Input import Input
 
 
 def error(bot, update, error):
-    logging.warning('Update "%s" caused error "%s"', update, error)
+    global logger
+
+    logger.warning('Update "%s" caused error "%s"', update, error)
 
 
 def save_chat_id(update):
@@ -30,7 +32,9 @@ def start(bot, update):
 
     """
 
-    logging.warning("In 'start' function")
+    global logger
+
+    logger.warning("In 'start' function")
 
     save_chat_id(update)
     update.message.reply_text("Hi all")
@@ -44,7 +48,9 @@ def manage_dialog(bot, update):
 
     """
 
-    logging.warning("In 'manage_dialog' function")
+    global logger
+
+    logger.warning("In 'manage_dialog' function")
 
     save_chat_id(update)
     update.message.reply_text(j.send_command(update.message.text))
@@ -62,12 +68,13 @@ def handle_new_alert(msg):
 
     """
 
+    global logger
     global chat_id
 
     if chat_id == None:
         return
 
-    logging.warning("In 'handle_new_alert : " + msg)
+    logger.warning("In 'handle_new_alert : " + msg)
 
     bot = updater.bot
     bot.sendMessage(chat_id=chat_id, text=msg)
@@ -78,8 +85,16 @@ def main():
     global chat_id
     global telegram_token
     global updater
+    global logger
 
     chat_id = None
+
+    #logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+    ch = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#    logger.addHandler(formatter)
+    logger.setLevel(logging.DEBUG)
 
     #
     # La configuration est lue dans le fichier config.ini présent dans le même répertoire que le script

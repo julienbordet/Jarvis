@@ -74,9 +74,6 @@ class Input:
 
         """
 
-        print("On me parle : ", data)
-        print("  last_command : ", self.last_command)
-
         if data == ".":
             data = self.last_command
 
