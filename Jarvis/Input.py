@@ -125,4 +125,4 @@ class Input:
                     print(" Msg is not None : " + msg)
                     self.alert_handler(msg)
 
-            sleep(10)
+            sleep(300)

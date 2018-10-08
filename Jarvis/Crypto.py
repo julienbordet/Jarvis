@@ -8,9 +8,32 @@ from Jarvis.Action import Action
 
 
 class Crypto(Action):
-    COMMAND_LIST = ['btc']
+    COMMAND_LIST = ['btc', 'low', 'high']
+
+    cb_api_key = None
+    """ Clé pour l'API COINBASE """
+
+    cb_api_secret = None
+    """ Mot de passe pour l'API COINBASE"""
+
+    cb_client = None
+    """ Objet Coinbase pour gérer la connexion au site"""
+
+    low_threshold = None
+    """ Limite inférieure pour l'alerte"""
+
+    high_threshold = None
+    """ Limite supérieure pour l'alerte"""
 
     def __init__(self, api_key, api_secret):
+        """
+
+        Constructeur de la classe Crypto
+
+        Appelle le constructeur de la classe mère, créé l'objet client Coinbase et initialise les attributs de base
+
+        """
+
         super().__init__()
 
         cb_api_key = api_key
@@ -75,7 +98,17 @@ class Crypto(Action):
             price = self.cb_client.get_spot_price(currency_pair='BTC-' + currency)
             return u"1 bitcoin = " + price.amount + " " + currency
 
-        return u"Houra"
+        if command == 'low':
+            low = float(params.lower())
+            self.set_low_threshold(low)
+            return u"Alerte inférieure configurée désormais à {0}".format(low)
+
+        if command == 'high':
+            high = float(params.lower())
+            self.set_high_threshold(high)
+            return u"Alerte supérieure configurée désormais à {0}".format(high)
+
+        return u"Hou là, ce n'est pas bon signe..."
 
     def check_function(self):
         """
