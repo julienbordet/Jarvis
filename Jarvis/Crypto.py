@@ -3,6 +3,7 @@
 """
 
 from coinbase.wallet.client import Client
+import logging
 
 from Jarvis.Action import Action
 
@@ -33,7 +34,6 @@ class Crypto(Action):
         Appelle le constructeur de la classe mère, créé l'objet client Coinbase et initialise les attributs de base
 
         """
-
         super().__init__()
 
         cb_api_key = api_key

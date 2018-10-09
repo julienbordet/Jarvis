@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import logging
 from threading import Thread
 from time import sleep
 
@@ -40,6 +41,7 @@ class Input:
         self.thread = Thread(target=self.manage_checks)
 
         self.last_command = ''
+
 
     def register_crypto(self, api, key):
         """
@@ -89,7 +91,7 @@ class Input:
         if not command in self.COMMAND_LIST.keys():
             return u"Désolé, commande inconnue"
         else:
-            print("Commande : " + command + " paramètres : " + params)
+            logging.info("Commande : " + command + " paramètres : " + params)
             manager = self.COMMAND_LIST[command]
             self.last_command = data
 
@@ -111,18 +113,18 @@ class Input:
         self.thread.start()
 
     def manage_checks(self):
-        print("manage_check called (self._ready = {0})".format(self._ready))
+        logging.info("manage_check called (self._ready = {0})".format(self._ready))
         if self._ready == False:
             return
 
         while (1):
             i = 1
             for action in self.ACTIONS:
-                print("Review actions {0}".format(i))
+                logging.info("Review actions {0}".format(i))
                 msg = action.check_function()
 
                 if (msg is not None):
-                    print(" Msg is not None : " + msg)
+                    logging.info(" Msg is not None : " + msg)
                     self.alert_handler(msg)
 
             sleep(300)
