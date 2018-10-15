@@ -101,12 +101,12 @@ class Crypto(Action):
         if command == 'low':
             low = float(params.lower())
             self.set_low_threshold(low)
-            return u"Alerte inférieure configurée désormais à {0}".format(low)
+            return u"Alerte plancher configurée désormais à {0}".format(low)
 
         if command == 'high':
             high = float(params.lower())
             self.set_high_threshold(high)
-            return u"Alerte supérieure configurée désormais à {0}".format(high)
+            return u"Alerte plafond configurée désormais à {0}".format(high)
 
         return u"Hou là, ce n'est pas bon signe..."
 
@@ -118,10 +118,11 @@ class Crypto(Action):
         :return:
 
         """
+        logging.debug("check_function")
 
         price = float(self.cb_client.get_spot_price(currency_pair='BTC-EUR').amount)
 
         if self.low_threshold is not None and price < self.low_threshold:
-            return u"Le prix " + price + " est inférieur à la valeur minimale"
+            return u"Le prix " + str(price) + " est inférieur au plancher"
         elif self.high_threshold is not None and price > self.high_threshold:
-            return u"Le prix " + price + " est supérieur à la valeur minimale"
+            return u"Le prix " + str(price) + " est supérieur au plafond"

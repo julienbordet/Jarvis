@@ -82,7 +82,7 @@ def main():
 
     chat_id = None
 
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s - %(module)s - %(levelname)s - %(message)s', level=logging.INFO)
 
     logging.info("Démarrage de  " + __name__)
 
@@ -99,8 +99,8 @@ def main():
     j = Input()
 
     j.register_crypto(cb_api_key, cb_api_secret)
-    # j.define_alert_handler(handle_new_alert)
-    # j.start_polling()
+    j.define_alert_handler(handle_new_alert)
+    j.start_polling()
 
     #
     # Démarrage du bot
