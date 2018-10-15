@@ -9,7 +9,7 @@ from Jarvis.Action import Action
 
 
 class Crypto(Action):
-    COMMAND_LIST = ['btc', 'low', 'high']
+    COMMAND_LIST = ['btc', 'low', 'high', 'ok']
 
     cb_api_key = None
     """ Clé pour l'API COINBASE """
@@ -43,6 +43,8 @@ class Crypto(Action):
 
         self.low_threshold = None
         self.high_threshold = None
+
+        self.acknowledge = False
 
     def set_low_threshold(self, low_threshold):
         """
@@ -108,6 +110,9 @@ class Crypto(Action):
             self.set_high_threshold(high)
             return u"Alerte supérieure configurée désormais à {0}".format(high)
 
+        if command == 'ok'
+            self.acknowledge = True
+
         return u"Hou là, ce n'est pas bon signe..."
 
     def check_function(self):
@@ -116,6 +121,7 @@ class Crypto(Action):
         Effectue un certain nombre de vérification et lance l'alerte associée
 
         :return:
+        Le message à afficher à l'utilisateur
 
         """
 
