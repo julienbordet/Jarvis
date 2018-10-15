@@ -132,7 +132,6 @@ class Input:
             self.save()
             return "Save : sauvegarde effectuée"
 
-        logging.info("paramètres float = {0}".format(float(params)))
         if command == "sleep" and float(params) is not None:
             try:
                 sleep_time = float(params)
