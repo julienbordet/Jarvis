@@ -132,7 +132,7 @@ class Input:
             self.save()
             return "Save : sauvegarde effectuée"
 
-        if command == "sleep" and float(params) is not None:
+        if command == "sleep" and params is not None:
             try:
                 sleep_time = float(params)
             except Exception:
