@@ -113,11 +113,11 @@ class Input:
         self.thread.start()
 
     def manage_checks(self):
-        logging.info("manage_check called (self._ready = {0})".format(self._ready))
         if self._ready == False:
             return
 
         while (1):
+            logging.info("manage_check called (self._ready = {0})".format(self._ready))
             i = 1
             for action in self.ACTIONS:
                 logging.info("Review actions {0}".format(i))
