@@ -2,10 +2,12 @@
 
 import re
 import logging
+import json
 from threading import Thread
 from time import sleep
 
 from Jarvis.Crypto import Crypto
+from Jarvis.JEncoder import JEncoder
 
 
 class Input:
@@ -41,7 +43,32 @@ class Input:
         self.thread = Thread(target=self.manage_checks)
 
         self.last_command = ''
+        self.sleep_time = 300
+        self.alert_handler = None
+        self.dump_file = 'jarvis_dump.txt'
+        self._conf = {}
 
+        try:
+            f = open(self.dump_file, 'r')
+        except IOError:
+            logging.warning("Récupérération du dump impossibe lors de l'ouverture du fichier {0}".format(
+                self.dump_file))
+            return
+
+        for line in f:
+            attribut = re.search(r"(.*?)#(.*)", line)
+            self._conf[attribut.group(1)] = attribut.group(2)
+            logging.info("Lecture du fichier dump : {0}".format(self._conf))
+
+        json_dict = dict()
+
+        json_key = "{0}.{1}".format(self.__class__.__module__, self.__class__.__qualname__)
+        if json_key in self._conf.keys():
+            json_string = self._conf[json_key]
+            json_dict = json.loads(json_string)
+
+            if "last_command" in json_dict.keys(): self.last_command = json_dict["last_command"]
+            if "sleep_time" in json_dict.keys(): self.sleep_time = json_dict["sleep_time"]
 
     def register_crypto(self, api, key):
         """
@@ -58,7 +85,14 @@ class Input:
 
         """
 
-        crypto = Crypto(api, key)
+        json_dict = dict()
+
+        json_key = "{0}.{1}".format(Crypto.__module__, Crypto.__qualname__)
+        if json_key in self._conf.keys():
+            json_string = self._conf[json_key]
+            json_dict = json.loads(json_string)
+
+        crypto = Crypto(api, key, **json_dict)
 
         self.ACTIONS.append(crypto)
         for i in crypto.command_list():
@@ -72,28 +106,47 @@ class Input:
         Chaîne de caractère représentant les données transmises de l'utilisateur
 
         :return:
-        La réponse de l'objet action enregistré la table COMMAND_LIST
+        La réponse de l'objet action enregistré dans la table COMMAND_LIST
 
         """
 
-        if data == ".":
-            data = self.last_command
+        logging.info("In send_command : data = {0}".format(data))
 
         # Séparation de la commande et des paramètres, qui sont optionnels
-        words = re.search(r"(\w+)\s*(.*)", data)
+        words = re.search(r"([\w\.]+)\s*(.*)", data)
 
         if not words:
             return u"Problème dans le traitement de la commande"
 
+        self.last_command = data
+
         command = words.group(1).lower()
         params = words.group(2)
+
+        logging.info("In send_command : command = {0}, params = {1}".format(command, params))
+
+        if command == ".":
+            command = self.last_command
+
+        if command == "save":
+            self.save()
+            return "Save : sauvegarde effectuée"
+
+        logging.info("paramètres float = {0}".format(float(params)))
+        if command == "sleep" and float(params) is not None:
+            try:
+                sleep_time = float(params)
+            except Exception:
+                return "Erreur : paramètre incorrect"
+
+            self.sleep_time = sleep_time
+            return "Sleep : modification effectuée"
 
         if not command in self.COMMAND_LIST.keys():
             return u"Désolé, commande inconnue"
         else:
             logging.info("Commande : " + command + " paramètres : " + params)
             manager = self.COMMAND_LIST[command]
-            self.last_command = data
 
             return manager.get_response(command, params)
 
@@ -109,10 +162,26 @@ class Input:
         self.alert_handler = handler
 
     def start_polling(self):
+        """
+        Lance le threading pour effectuer les surveillance définies par les objets stockés dans ACTIONS
+
+        :return:
+
+        """
         self._ready = True
         self.thread.start()
 
     def manage_checks(self):
+        """
+        Méthode lancée par le Thread principal. Fait le tour des objets de classe Action stockés dans ACTIONS
+        et lance si disponible la méthode check_function()
+
+        La méthode check_function renvoie un message à afficher à l'utilisateur. Cette chaîne est alors passée
+        comme paramètre à la méthode handler, qui a été configurée plus tôt.
+
+        :return:
+
+        """
         if self._ready == False:
             return
 
@@ -125,6 +194,51 @@ class Input:
 
                 if (msg is not None):
                     logging.info(" Msg is not None : " + msg)
-                    self.alert_handler(msg)
 
-            sleep(300)
+                    if self.alert_handler is not None:
+                        self.alert_handler(msg)
+                else:
+                    logging.info(" Msg is None")
+
+            sleep(self.sleep_time)
+
+    def jsonable(self):
+        """
+            Méthode appelée par le classe JEncoder pour permettre à chaque sous-classe de Action de définir ses propres
+            attributs à sauvegarder.
+            L'objectif principal est d'éviter de sérialiser les attributs complexes du type Coinbase
+
+            :param o:
+            L'objet à sérialiser
+
+            :return:
+            Le dictionnaire prêt à sérialiser
+
+
+            """
+
+        return {'last_command' : self.last_command, 'sleep_time' : self.sleep_time}
+
+    def save(self):
+        """
+        Ouvre un fichier, puis le passe à chacun des objets stockés dans ACTION pour qu'il puisse y stocker ses
+        informations au format JSON
+
+        :return:
+
+        """
+
+        try:
+            f = open(self.dump_file, 'w')
+        except IOError:
+            logging.warning("Dump impossible : erreur lors de l'ouverture du fichier {0}".format(self.dump_file))
+            return
+
+        f.write("{0}.{1}#".format(self.__class__.__module__, self.__class__.__qualname__))
+        s = json.dumps(self, cls=JEncoder)
+        f.write(s + "\n")
+
+        for action in self.ACTIONS:
+            f.write("{0}.{1}#".format(action.__class__.__module__, action.__class__.__qualname__))
+            action.save(f)
+

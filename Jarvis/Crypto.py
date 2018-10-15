@@ -9,7 +9,7 @@ from Jarvis.Action import Action
 
 
 class Crypto(Action):
-    COMMAND_LIST = ['btc', 'low', 'high', 'ok']
+    COMMAND_LIST = ['btc', 'low', 'high']
 
     cb_api_key = None
     """ Clé pour l'API COINBASE """
@@ -26,7 +26,7 @@ class Crypto(Action):
     high_threshold = None
     """ Limite supérieure pour l'alerte"""
 
-    def __init__(self, api_key, api_secret):
+    def __init__(self, api_key, api_secret, low_threshold=None, high_threshold=None):
         """
 
         Constructeur de la classe Crypto
@@ -41,10 +41,8 @@ class Crypto(Action):
 
         self.cb_client = Client(cb_api_key, cb_api_secret)
 
-        self.low_threshold = None
-        self.high_threshold = None
-
-        self.acknowledge = False
+        self.low_threshold = low_threshold
+        self.high_threshold = high_threshold
 
     def set_low_threshold(self, low_threshold):
         """
@@ -101,17 +99,22 @@ class Crypto(Action):
             return u"1 bitcoin = " + price.amount + " " + currency
 
         if command == 'low':
-            low = float(params.lower())
+            try:
+                low = float(params.lower())
+            except ValueError:
+                return "Plancher actuellement configuré : {0}".format(self.low_threshold)
+
             self.set_low_threshold(low)
             return u"Alerte plancher configurée désormais à {0}".format(low)
 
         if command == 'high':
-            high = float(params.lower())
+            try:
+                high = float(params.lower())
+            except ValueError:
+                return "Plafond actuellement configuré : {0}".format(self.high_threshold)
+
             self.set_high_threshold(high)
             return u"Alerte plafond configurée désormais à {0}".format(high)
-
-        if command == 'ok'
-            self.acknowledge = True
 
         return u"Hou là, ce n'est pas bon signe..."
 
@@ -124,11 +127,32 @@ class Crypto(Action):
         Le message à afficher à l'utilisateur
 
         """
-        logging.debug("check_function")
+        logging.info("check_function")
 
         price = float(self.cb_client.get_spot_price(currency_pair='BTC-EUR').amount)
+        logging.info("price is {0}".format(price))
 
         if self.low_threshold is not None and price < self.low_threshold:
-            return u"Le prix " + str(price) + " est inférieur au plancher"
+            return u"Le prix {0} est inférieur au plancher".format(price)
         elif self.high_threshold is not None and price > self.high_threshold:
-            return u"Le prix " + str(price) + " est supérieur au plafond"
+            return u"Le prix {0} est supérieur au plafond".format(price)
+
+    def jsonable(self):
+        """
+        Méthode appelée par le classe JEncoder pour permettre à chaque sous-classe de Action de définir ses propres
+        attributs à sauvegarder.
+        L'objectif principal est d'éviter de sérialiser les attributs complexes du type Coinbase
+
+        :param o:
+        L'objet à sérialiser
+
+        :return:
+        Le dictionnaire prêt à sérialiser
+
+
+        """
+
+        new_dict = self.__dict__.copy()
+        del new_dict["cb_client"]
+        return new_dict
+

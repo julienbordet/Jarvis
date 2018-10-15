@@ -3,6 +3,8 @@
 
 import configparser
 import logging
+import signal
+import sys
 from time import sleep
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -73,6 +75,35 @@ def handle_new_alert(msg):
     bot = updater.bot
     bot.sendMessage(chat_id=chat_id, text=msg)
 
+def signal_handler(_signo, _stack_frame):
+    """
+    Signal handler
+
+    :param _signo:
+    :param _stack_frame:
+
+    :return:
+
+
+    """
+    logging.info("In 'signal_handler")
+    save_all_and_exit()
+
+
+def save_all_and_exit():
+    """
+
+    Intercepts interruptions and launch save method for Input
+
+    :return:
+
+    """
+
+    global j
+
+    logging.info("In 'save_all_and_exit'")
+    j.save()
+    exit(1)
 
 def main():
     global j
@@ -102,6 +133,8 @@ def main():
     j.define_alert_handler(handle_new_alert)
     j.start_polling()
 
+    signal.signal(signal.SIGTERM, signal_handler)
+
     #
     # Démarrage du bot
     #
@@ -121,8 +154,11 @@ def main():
     #
 
     while (1):
-        sleep(1)
-
+        try:
+            sleep(1)
+        except KeyboardInterrupt:
+            logging.warning("Received KeyboardInterupt")
+            save_all_and_exit()
 
 if __name__ == '__main__':
     main()
