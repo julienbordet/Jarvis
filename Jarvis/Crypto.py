@@ -9,7 +9,7 @@ from Jarvis.Action import Action
 
 
 class Crypto(Action):
-    COMMAND_LIST = ['btc', 'low', 'high']
+    COMMAND_LIST = ['btc', 'low', 'high', 'cur']
 
     cb_api_key = None
     """ Clé pour l'API COINBASE """
@@ -26,7 +26,7 @@ class Crypto(Action):
     high_threshold = None
     """ Limite supérieure pour l'alerte"""
 
-    def __init__(self, api_key, api_secret, low_threshold=None, high_threshold=None):
+    def __init__(self, api_key, api_secret, low_threshold=None, high_threshold=None, currency='EUR'):
         """
 
         Constructeur de la classe Crypto
@@ -43,6 +43,7 @@ class Crypto(Action):
 
         self.low_threshold = low_threshold
         self.high_threshold = high_threshold
+        self.currency = currency
 
     def set_low_threshold(self, low_threshold):
         """
@@ -90,31 +91,45 @@ class Crypto(Action):
         """
 
         if command == 'btc':
-            currency = 'EUR'
-
-            if params.lower() == 'usd':
-                currency = 'USD'
-
-            price = self.cb_client.get_spot_price(currency_pair='BTC-' + currency)
-            return u"1 bitcoin = " + price.amount + " " + currency
+            price = self.cb_client.get_spot_price(currency_pair='BTC-' + self.currency)
+            return u"1 bitcoin = " + price.amount + " " + self.currency
 
         if command == 'low':
+            if not params:
+                return "Plancher : {0}".format(self.low_threshold)
+
             try:
                 low = float(params.lower())
             except ValueError:
-                return "Plancher actuellement configuré : {0}".format(self.low_threshold)
+                return "Paramètre incorrect"
 
             self.set_low_threshold(low)
             return u"Alerte plancher configurée désormais à {0}".format(low)
 
         if command == 'high':
+            if not params:
+                return "Plafond : {0}".format(self.high_threshold)
+
             try:
                 high = float(params.lower())
             except ValueError:
-                return "Plafond actuellement configuré : {0}".format(self.high_threshold)
+                return "Paramètre incorrect"
 
             self.set_high_threshold(high)
             return u"Alerte plafond configurée désormais à {0}".format(high)
+
+        if command == 'cur':
+            if not params:
+                return "Monnaie : {0}".format(self.currency)
+
+            if params.lower() == 'usd':
+                self.currency = 'USD'
+                return "Modification effectuée"
+            if params.lower() == 'eur':
+                self.currency = 'EUR'
+                return "Modification effectuée"
+
+            return "Erreur sur la monnaie"
 
         return u"Hou là, ce n'est pas bon signe..."
 
