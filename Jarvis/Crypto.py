@@ -9,7 +9,7 @@ from Jarvis.Action import Action
 
 
 class Crypto(Action):
-    COMMAND_LIST = ['btc', 'low', 'high', 'cur']
+    COMMAND_LIST = ['btc', 'zrx', 'low', 'high', 'cur']
 
     cb_api_key = None
     """ Clé pour l'API COINBASE """
@@ -90,8 +90,8 @@ class Crypto(Action):
 
         """
 
-        if command == 'btc':
-            price = self.cb_client.get_spot_price(currency_pair='BTC-' + self.currency)
+        if command == 'btc' or command == 'zrx':
+            price = self.cb_client.get_spot_price(currency_pair=command.capitalize() +'-' + self.currency)
             return u"1 bitcoin = " + price.amount + " " + self.currency
 
         if command == 'low':
