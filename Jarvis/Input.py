@@ -109,8 +109,13 @@ class Input:
         La réponse de l'objet action enregistré dans la table COMMAND_LIST
 
         """
-
         logging.info("In send_command : data = {0}".format(data))
+
+        # Searching for "last command" command
+        if data == ".":
+            data = self.last_command
+        else:
+            self.last_command = data
 
         # Séparation de la commande et des paramètres, qui sont optionnels
         words = re.search(r"([\w\.]+)\s*(.*)", data)
@@ -118,15 +123,8 @@ class Input:
         if not words:
             return u"Problème dans le traitement de la commande"
 
-        self.last_command = data
-
         command = words.group(1).lower()
         params = words.group(2)
-
-        logging.info("In send_command : command = {0}, params = {1}".format(command, params))
-
-        if command == ".":
-            command = self.last_command
 
         if command == "save":
             self.save()
